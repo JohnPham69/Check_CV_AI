@@ -89,7 +89,7 @@ def GeminiChat(prompt, pCV, pCrit):
         file.close()
     """
     #My API
-    genai.configure(api_key="AIzaSyCxacO9TqPYM1Dsq56ms_oZvze1fwvZcxU")
+    genai.configure(api_key="Input your API key here")
     # Create the model
     generation_config = {
       "temperature": 1,
