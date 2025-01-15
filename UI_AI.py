@@ -3,11 +3,34 @@ from tkinter import ttk
 from tkinter import *
 from tkinter import filedialog
 from CV_AI import start_up
+import threading
 
 #Let user choose how much to pass
 
 path_to_crit = None
 path_to_CVs = None
+
+def probar(stoporgo):
+    # root window
+    root = tk.Tk()
+    root.geometry('300x120')
+    root.title('Progressbar Demo')
+    root.grid()
+
+    # progressbar
+    pb = ttk.Progressbar(
+        root,
+        orient='horizontal',
+        mode='indeterminate',
+        length=280
+    )
+    # place the progressbar
+    pb.grid(column=0, row=0, columnspan=2, padx=10, pady=20)
+    if stoporgo != 0:
+        pb.start()
+    else:
+        pb.stop()
+    root.mainloop()
 
 def browse_file():
     global path_to_crit
@@ -24,25 +47,45 @@ def browse_file2():
         cvs_entry.delete(0, tk.END)
         cvs_entry.insert(0, path_to_CVs)
 
+def send2get(user_prompt):
+    response = start_up(path_to_crit, path_to_CVs, user_prompt)
+    output_text.config(state="normal")
+    output_text.delete("1.0", tk.END)
+    output_text.insert(tk.END, response)
+    output_text.config(state="disabled")
+
+def start_progress_bar():
+    pb.start()
+
+def stop_progress_bar():
+    pb.stop()
+
 def send():
     error_label.config(text="Applicant's result:")
+    not_label.config(text="Loading...")
     if (path_to_crit != None or path_to_CVs != None) and (int(max_rating_score.get().strip()) > int(min_passing_score.get().strip())):
-        user_prompt="\nMaximum rating score must be: "+max_rating_score.get().strip()+"\nTo pass, the mininum score to pass must be:"+min_passing_score.get().strip()
-        print(min_passing_score.get().strip())
-        response = start_up(path_to_crit, path_to_CVs, user_prompt)
-        output_text.config(state="normal")
-        output_text.delete("1.0", tk.END)
-        output_text.insert(tk.END, response)
-        output_text.config(state="disabled")
+        user_prompt = f"\nMaximum rating score must be: {max_rating_score.get().strip()}\nTo pass, the minimum score to pass must be: {min_passing_score.get().strip()}"
+        start_progress_bar()  # Start the progress bar
+
+        # Run send2get in a separate thread
+        def task():
+            try:
+                send2get(user_prompt)
+            finally:
+                stop_progress_bar()  # Stop the progress bar after the task completes
+                not_label.config(text="DONE!")
+
+        t = threading.Thread(target=task)
+        t.start()
     elif path_to_crit == None or path_to_CVs == None:
         error_label.config(text="Error: Please select BOTH files.")
     else:
-        error_label.config(text="Error: Mininum passing score must be\n SMALLER than the Maximum ratings.")
+        error_label.config(text="Error: Minimum passing score must be\n SMALLER than the Maximum ratings.")
 
 # Create the main window
 root = tk.Tk()
 root.title("CV Scanner AI")
-root.geometry("400x300")
+root.geometry("400x350")
 root.resizable(False, False)
 
 # Create form-style layout
@@ -112,6 +155,14 @@ output_label = tk.Label(frame, text="Output: ", anchor="w", width=8, font=("TkDe
 output_label.grid(row=7, column=0, sticky="w")
 output_text = tk.Text(frame, height=10, width=34, state="disabled")
 output_text.grid(row=7, column=1, sticky="w")
+
+# Progress bar
+pb = ttk.Progressbar(frame, orient='horizontal', mode='indeterminate', length=280)
+pb.grid(row=8, column=0, columnspan=3, pady=10)
+
+# Notif bar
+not_label = tk.Label(frame, text="Loading bar", fg="green")
+not_label.grid(row=9, column=1, sticky="n")
 
 # Run the application
 root.mainloop()
