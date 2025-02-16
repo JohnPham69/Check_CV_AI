@@ -89,18 +89,18 @@ def GeminiChat(prompt, pCV, pCrit):
         file.close()
     """
     #My API
-    genai.configure(api_key="Input your API key here")
+    genai.configure(api_key="AIzaSyCxacO9TqPYM1Dsq56ms_oZvze1fwvZcxU")
     # Create the model
     generation_config = {
-      "temperature": 1,
-      "top_p": 0.95,
-      "top_k": 64,
-      "max_output_tokens": 8192,
-      "response_mime_type": "text/plain",
+    "temperature": 1,
+    "top_p": 0.95,
+    "top_k": 64,
+    "max_output_tokens": 8192,
+    "response_mime_type": "text/plain",
     }
     
     model = genai.GenerativeModel(
-      model_name="gemini-exp-1114",
+      model_name="gemini-2.0-flash-lite-preview-02-05",
       generation_config=generation_config,
       # safety_settings = Adjust safety settings
       # See https://ai.google.dev/gemini-api/docs/safety-settings
@@ -116,7 +116,7 @@ def GeminiChat(prompt, pCV, pCrit):
             {
             "role": "model",
             "parts": [
-                "Hi there! How can I help you today?\n",
+                "Hi there! I'm here to check CVs based on provided criteria\n",
             ],
             },
         ]
@@ -184,7 +184,7 @@ def thebot(foShoCrit, foShoCV, user_prompt=""):
     If it strictly matches the criterias. You may agree of accepting the applicant.
     You must give one's CV a score, such as 9/10 or 3/4. Dependings on user's prompt.
     If the score is equal to or exceed the passing rate, which will be provide as 'the mininum score to pass must be', applicant shall pass.
-    You must first show the applicant's score.
+    The score must be shown first than the reasons or its break-down.
     Your respond will be: "I [agree or disagree] of accepting the applicant [number #? if there are many CVs at a time]."
     Give us a list of why you agree or disagree. Start each point with a '-'. If agree, tell us what criteria one has met and the other way around if one failed.
     Create at least 3 questions for the afterwards interview if the applicant's CV met the criterias.
