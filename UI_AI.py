@@ -2,11 +2,11 @@ import tkinter as tk
 from tkinter import ttk, filedialog
 import threading
 import time
-from CV_AI import start_up  # Assuming this is your AI function
+from CV_AI import start_up  # Assuming this is your AI function4: NOT FOUND
 
 # Variables to store file paths
 path_to_crit = None
-path_to_CVs = None
+path_to_CVs = []  # Change to a list to store multiple file paths
 processing_done = False  # Global flag to track progress
 
 def browse_file():
@@ -18,10 +18,11 @@ def browse_file():
 
 def browse_file2():
     global path_to_CVs
-    path_to_CVs = filedialog.askopenfilename()
-    if path_to_CVs:
+    files = filedialog.askopenfilenames()
+    if files:
+        path_to_CVs = list(files)
         cvs_entry.delete(0, tk.END)
-        cvs_entry.insert(0, path_to_CVs)
+        cvs_entry.insert(0, ", ".join(path_to_CVs))
 
 def update_progress():
     """ Continuously update progress bar while AI function is running. """
@@ -44,7 +45,7 @@ def process_data():
     user_prompt = f"\nMaximum rating score must be: {max_rating_score.get().strip()}\n" \
                   f"To pass, the minimum score to pass must be: {min_passing_score.get().strip()}"
 
-    response = start_up(path_to_crit, path_to_CVs, user_prompt)
+    response = start_up(path_to_crit, ";".join(path_to_CVs), user_prompt)
 
     output_text.config(state="normal")
     output_text.delete("1.0", tk.END)
@@ -58,9 +59,9 @@ def send():
     processing_done = False  # Ensure the flag is reset
 
     error_label.config(text="Applicant's result:")
-    not_label.config(text="Loading...")
 
     if (path_to_crit and path_to_CVs) and (int(max_rating_score.get().strip()) > int(min_passing_score.get().strip())):
+        not_label.config(text="Loading...")
         # Start progress bar updater
         threading.Thread(target=update_progress, daemon=True).start()
         # Start AI processing in a separate thread
@@ -69,6 +70,18 @@ def send():
         error_label.config(text="Error: Please select BOTH files.")
     else:
         error_label.config(text="Error: Minimum passing score must be\n SMALLER than Maximum ratings.")
+
+def download():
+    if output_text.compare("end-1c", "==", "1.0"):
+        error_label.config(text="Error: No content to be downloaded")
+    else: 
+        a = output_text.get("1.0", "end-1c")
+        print(a)
+        folder_path = filedialog.askdirectory()
+        down_file = folder_path + "/Applicants_result_file.txt"
+        with open(down_file, "w", encoding='utf-8') as f:
+            f.write(a)
+            f.close()
 
 # GUI Setup
 root = tk.Tk()
@@ -88,7 +101,7 @@ criteria_entry.grid(row=0, column=1, sticky="w")
 criteria_browse_button = tk.Button(frame, text="Browse", command=browse_file)
 criteria_browse_button.grid(row=0, column=2)
 
-cvs_label = tk.Label(frame, text="CVs file: ", font=("TkDefaultFont", 9, "bold"))
+cvs_label = tk.Label(frame, text="CVs file(s): ", font=("TkDefaultFont", 9, "bold"))
 cvs_label.grid(row=1, column=0, sticky="w")
 
 cvs_entry = tk.Entry(frame, width=40)
@@ -127,6 +140,9 @@ output_label.grid(row=7, column=0, sticky="w")
 
 output_text = tk.Text(frame, height=10, width=34, state="disabled")
 output_text.grid(row=7, column=1, sticky="w")
+
+download = tk.Button(frame, text="Export", command=download)
+download.grid(row=7, column = 2)
 
 pb = ttk.Progressbar(frame, orient='horizontal', mode='determinate', length=280, maximum=100)
 pb.grid(row=8, column=0, columnspan=3, pady=10)
